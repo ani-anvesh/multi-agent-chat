@@ -1,0 +1,2506 @@
+{
+ "Description": "Multi Agent Orchestrator Chat Demo Application (uksb-2mz8io1d9k)\nAmazon Lex for travel hospitality offers pre-built solutions so you can enable experiences at scale and drive digital engagement. The purpose-built bots provide ready to use conversation flows along with training data and dialog prompts, for both voice and chat modalities.\n",
+ "AWSTemplateFormatVersion": "2010-09-09",
+ "Metadata": {
+  "AWS::CloudFormation::Interface": {
+   "ParameterGroups": [
+    {
+     "Label": {
+      "default": "Amazon Lex bot parameters"
+     },
+     "Parameters": [
+      "BotName",
+      "BusinessLogicFunctionName"
+     ]
+    },
+    {
+     "Label": {
+      "default": "Amazon DynamoDB parameters"
+     },
+     "Parameters": [
+      "DynamoDBTableName"
+     ]
+    },
+    {
+     "Label": {
+      "default": "Amazon Connect parameters (Optional)"
+     },
+     "Parameters": [
+      "ConnectInstanceARN",
+      "ContactFlowName"
+     ]
+    }
+   ]
+  }
+ },
+ "Mappings": {
+  "BucketName": {
+   "us-east-1": {
+    "Name": "lex-usecases-us-east-1"
+   },
+   "us-west-2": {
+    "Name": "lex-usecases-us-west-2"
+   },
+   "eu-west-2": {
+    "Name": "lex-usecases-eu-west-2"
+   },
+   "eu-west-1": {
+    "Name": "lex-usecases-eu-west-1"
+   },
+   "eu-central-1": {
+    "Name": "lex-usecases-eu-central-1"
+   },
+   "ca-central-1": {
+    "Name": "lex-usecases-ca-central-1"
+   },
+   "ap-southeast-2": {
+    "Name": "lex-usecases-ap-southeast-2"
+   },
+   "ap-southeast-1": {
+    "Name": "lex-usecases-ap-southeast-1"
+   },
+   "ap-northeast-2": {
+    "Name": "lex-usecases-ap-northeast-2"
+   },
+   "ap-northeast-1": {
+    "Name": "lex-usecases-ap-northeast-1"
+   },
+   "af-south-1": {
+    "Name": "lex-usecases-af-south-1"
+   }
+  },
+  "S3Path": {
+   "LexImportSource": {
+    "Name": "travel/airlines/lex_import.zip"
+   },
+   "DBImportSource": {
+    "Name": "travel/airlines/db_import.zip"
+   },
+   "BusinessLogicSource": {
+    "Name": "travel/airlines/lambda_import.zip"
+   },
+   "ConnectImportSource": {
+    "Name": "travel/airlines/connect_import.zip"
+   }
+  }
+ },
+ "Parameters": {
+  "ConnectInstanceARN": {
+   "Type": "String",
+   "Default": "",
+   "Description": "ARN of Connect Instance. To find your instance ARN: 'https://docs.aws.amazon.com/connect/latest/adminguide/find-instance-arn.html'\n"
+  },
+  "ContactFlowName": {
+   "Type": "String",
+   "Default": "AirlinesContactFlow",
+   "Description": "Name of the Connect contact flow. Please ensure contact flow with the same name does not exist.\n"
+  },
+  "BusinessLogicFunctionName": {
+   "Type": "String",
+   "Default": "AirlinesBusinessLogic",
+   "Description": "Name of the Lambda function for validation and fulfilment\n"
+  },
+  "BotName": {
+   "Type": "String",
+   "Default": "AirlinesBot",
+   "Description": "Name of the Lex bot\n"
+  },
+  "DynamoDBTableName": {
+   "Type": "String",
+   "Default": "Airlines_db",
+   "Description": "Name of the DynamoDB table that contains the sample policy data\n"
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Resources": {
+  "LexRole": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Principal": {
+        "Service": [
+         "lambda.amazonaws.com",
+         "lex.amazonaws.com"
+        ]
+       },
+       "Action": [
+        "sts:AssumeRole"
+       ]
+      }
+     ]
+    },
+    "Path": "/",
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "polly:SynthesizeSpeech"
+         ],
+         "Resource": [
+          "*"
+         ]
+        }
+       ]
+      },
+      "PolicyName": {
+       "Fn::Join": [
+        "_",
+        [
+         {
+          "Ref": "AWS::StackName"
+         },
+         "LexPolicy"
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "LexImportRole": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Principal": {
+        "Service": [
+         "lambda.amazonaws.com"
+        ]
+       },
+       "Action": [
+        "sts:AssumeRole"
+       ]
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     "arn:aws:iam::aws:policy/AmazonLexFullAccess"
+    ],
+    "Path": "/",
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "lambda:PublishVersion",
+          "lambda:AddPermission",
+          "lambda:GetFunction",
+          "sts:GetCallerIdentity",
+          "iam:GetRole",
+          "iam:PassRole"
+         ],
+         "Resource": [
+          {
+           "Fn::Sub": "arn:aws:lex:${AWS::Region}:${AWS::AccountId}:*"
+          },
+          {
+           "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/*"
+          },
+          {
+           "Fn::Sub": "arn:aws:lex:${AWS::Region}:${AWS::AccountId}:bot/*"
+          },
+          {
+           "Fn::Sub": "arn:aws:lex:${AWS::Region}:${AWS::AccountId}:bot-alias/*"
+          },
+          {
+           "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
+          }
+         ]
+        }
+       ]
+      },
+      "PolicyName": {
+       "Fn::Join": [
+        "_",
+        [
+         {
+          "Ref": "AWS::StackName"
+         },
+         "LexImportPolicy"
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "LexImportFunction": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::FindInMap": [
+       "BucketName",
+       {
+        "Ref": "AWS::Region"
+       },
+       "Name"
+      ]
+     },
+     "S3Key": {
+      "Fn::FindInMap": [
+       "S3Path",
+       "LexImportSource",
+       "Name"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "TopicArn": {
+       "Ref": "LexRole"
+      }
+     }
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "_",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "LexImportFunction"
+      ]
+     ]
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "LexImportRole",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   }
+  },
+  "DynamoDBTable": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "record_type_id",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "customer_id",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "customer_id",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "record_type_id",
+      "KeyType": "RANGE"
+     }
+    ],
+    "PointInTimeRecoverySpecification": {
+     "PointInTimeRecoveryEnabled": true
+    },
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": {
+     "Ref": "DynamoDBTableName"
+    }
+   }
+  },
+  "LambdaRole": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Principal": {
+        "Service": [
+         "lambda.amazonaws.com"
+        ]
+       },
+       "Action": [
+        "sts:AssumeRole"
+       ]
+      }
+     ]
+    },
+    "Path": "/",
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "dynamodb:BatchGetItem",
+          "dynamodb:GetItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DescribeTable",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+         ],
+         "Resource": [
+          {
+           "Fn::GetAtt": "DynamoDBTable.Arn"
+          },
+          "arn:aws:logs:*:*:*"
+         ]
+        }
+       ]
+      },
+      "PolicyName": {
+       "Fn::Join": [
+        "_",
+        [
+         {
+          "Ref": "AWS::StackName"
+         },
+         "LambdaRolePolicy"
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "InvokeLexImportFunction": {
+   "Type": "Custom::InvokeLexImportFunction",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": "LexImportFunction.Arn"
+    },
+    "RoleARN": {
+     "Fn::GetAtt": "LexRole.Arn"
+    },
+    "LambdaFunctionName": {
+     "Ref": "BusinessLogicFunctionName"
+    },
+    "BotName": {
+     "Ref": "BotName"
+    }
+   },
+   "DependsOn": [
+    "LambdaBusinessLogic"
+   ],
+   "Version": "1.0"
+  },
+  "LambdaBusinessLogic": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::FindInMap": [
+       "BucketName",
+       {
+        "Ref": "AWS::Region"
+       },
+       "Name"
+      ]
+     },
+     "S3Key": {
+      "Fn::FindInMap": [
+       "S3Path",
+       "BusinessLogicSource",
+       "Name"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "dynamodb_tablename": {
+       "Ref": "DynamoDBTableName"
+      },
+      "databaseUser": "admin"
+     }
+    },
+    "FunctionName": {
+     "Ref": "BusinessLogicFunctionName"
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaRole",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   }
+  },
+  "DynamoDBImportFunction": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::FindInMap": [
+       "BucketName",
+       {
+        "Ref": "AWS::Region"
+       },
+       "Name"
+      ]
+     },
+     "S3Key": {
+      "Fn::FindInMap": [
+       "S3Path",
+       "DBImportSource",
+       "Name"
+      ]
+     }
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "_",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "DynamoDBImportFunction"
+      ]
+     ]
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaRole",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   }
+  },
+  "InvokeDynamoDBImportFunction": {
+   "Type": "Custom::InvokeDynamoDBImportFunction",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": "DynamoDBImportFunction.Arn"
+    },
+    "TableName": {
+     "Ref": "DynamoDBTable"
+    },
+    "key2": [
+     "list"
+    ],
+    "key3": {
+     "key4": "map"
+    }
+   },
+   "DependsOn": [
+    "DynamoDBTable"
+   ]
+  },
+  "LambdaPermission": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": "LambdaBusinessLogic.Arn"
+    },
+    "Principal": "lexv2.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": "InvokeLexImportFunction.lex_arn"
+    }
+   }
+  },
+  "ConnectRole": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Principal": {
+        "Service": [
+         "lambda.amazonaws.com"
+        ]
+       },
+       "Action": [
+        "sts:AssumeRole"
+       ]
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     "arn:aws:iam::aws:policy/AmazonLexFullAccess"
+    ],
+    "Path": "/",
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "connect:CreateContactFlow",
+          "connect:AssociateBot",
+          "connect:DescribeContactFlow",
+          "connect:ListContactFlows",
+          "iam:AddRoleToInstanceProfile",
+          "iam:AddUserToGroup",
+          "iam:AttachGroupPolicy",
+          "iam:AttachRolePolicy",
+          "iam:AttachUserPolicy",
+          "iam:CreateInstanceProfile",
+          "iam:CreatePolicy",
+          "iam:CreateRole",
+          "iam:CreateServiceLinkedRole",
+          "iam:CreateUser",
+          "iam:DetachGroupPolicy",
+          "iam:DetachRolePolicy",
+          "iam:DetachUserPolicy",
+          "iam:GetGroup",
+          "iam:GetGroupPolicy",
+          "iam:GetInstanceProfile",
+          "iam:GetLoginProfile",
+          "iam:PutGroupPolicy",
+          "iam:PutRolePolicy",
+          "iam:PutUserPolicy",
+          "iam:UpdateGroup",
+          "iam:UpdateRole",
+          "iam:UpdateUser",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:GetRole",
+          "iam:GetRolePolicy",
+          "iam:GetUser",
+          "iam:GetUserPolicy",
+          "iam:CreatePolicyVersion",
+          "iam:SetDefaultPolicyVersion",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+         ],
+         "Resource": "*"
+        }
+       ]
+      },
+      "PolicyName": {
+       "Fn::Join": [
+        "_",
+        [
+         {
+          "Ref": "AWS::StackName"
+         },
+         "ConnectRole"
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "ConnectImportFunction": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::FindInMap": [
+       "BucketName",
+       {
+        "Ref": "AWS::Region"
+       },
+       "Name"
+      ]
+     },
+     "S3Key": {
+      "Fn::FindInMap": [
+       "S3Path",
+       "ConnectImportSource",
+       "Name"
+      ]
+     }
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "_",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "ConnectImportFunction"
+      ]
+     ]
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "ConnectRole",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   }
+  },
+  "InvokeConnectImportFunction": {
+   "Type": "Custom::InvokeConnectImportFunction",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": "ConnectImportFunction.Arn"
+    },
+    "BotAliasArn": {
+     "Fn::GetAtt": "InvokeLexImportFunction.lex_arn"
+    },
+    "ContactName": {
+     "Ref": "ContactFlowName"
+    },
+    "ConnectInstanceARN": {
+     "Ref": "ConnectInstanceARN"
+    },
+    "BotName": {
+     "Ref": "BotName"
+    }
+   },
+   "Version": "1.0"
+  },
+  "DocumentsBucket9EC9DEB9": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     },
+     {
+      "Key": "aws-cdk:cr-owned:7932ea10",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/DocumentsBucket/Resource"
+   }
+  },
+  "DocumentsBucketPolicy1F991BD4": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "DocumentsBucket9EC9DEB9"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "DocumentsBucket9EC9DEB9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "DocumentsBucket9EC9DEB9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:PutBucketPolicy"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "DocumentsBucket9EC9DEB9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "DocumentsBucket9EC9DEB9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/DocumentsBucket/Policy/Resource"
+   }
+  },
+  "DocumentsBucketAutoDeleteObjectsCustomResourceFE3123FC": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "DocumentsBucket9EC9DEB9"
+    }
+   },
+   "DependsOn": [
+    "DocumentsBucketPolicy1F991BD4"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/DocumentsBucket/AutoDeleteObjectsCustomResource/Default"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "DocumentsBucket9EC9DEB9"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6",
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbBedrockKBServiceRole801F508D": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "bedrock.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/BedrockKBServiceRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbBedrockKBServiceRoleDefaultPolicy5858AC9A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1",
+       "Sid": "AllowKBToInvokeEmbedding"
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442",
+         "Arn"
+        ]
+       },
+       "Sid": "AllowKBToAccessAOSS"
+      },
+      {
+       "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:s3:::",
+           {
+            "Ref": "DocumentsBucket9EC9DEB9"
+           },
+           "/*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:s3:::",
+           {
+            "Ref": "DocumentsBucket9EC9DEB9"
+           }
+          ]
+         ]
+        }
+       ],
+       "Sid": "AllowKBToAccessAssets"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "MutiAgentOrchestratorDocKbBedrockKBServiceRoleDefaultPolicy5858AC9A",
+    "Roles": [
+     {
+      "Ref": "MutiAgentOrchestratorDocKbBedrockKBServiceRole801F508D"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/BedrockKBServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3": {
+   "Type": "AWS::Bedrock::KnowledgeBase",
+   "Properties": {
+    "KnowledgeBaseConfiguration": {
+     "Type": "VECTOR",
+     "VectorKnowledgeBaseConfiguration": {
+      "EmbeddingModelArn": "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1"
+     }
+    },
+    "Name": "Multi-agent-orchestrator-doc-kb",
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbBedrockKBServiceRole801F508D",
+      "Arn"
+     ]
+    },
+    "StorageConfiguration": {
+     "OpensearchServerlessConfiguration": {
+      "CollectionArn": {
+       "Fn::GetAtt": [
+        "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442",
+        "Arn"
+       ]
+      },
+      "FieldMapping": {
+       "MetadataField": "AMAZON_BEDROCK_METADATA",
+       "TextField": "AMAZON_BEDROCK_TEXT_CHUNK",
+       "VectorField": "bedrock-knowledge-base-default-vector"
+      },
+      "VectorIndexName": "agent-blueprints-kb-default-index"
+     },
+     "Type": "OPENSEARCH_SERVERLESS"
+    }
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbPermissionValidationCustomResource0765F2E8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/KnowledgeBase"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionValidationRole22C0C014": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": "aoss:APIAccessAll",
+         "Effect": "Allow",
+         "Resource": "*"
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "AOSSAccess"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBIndexCreationLambdaExecutionRoleA655E5AB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": "aoss:APIAccessAll",
+         "Effect": "Allow",
+         "Resource": "arn:aws:aoss:us-east-1:381491977884:collection/*"
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "AOSSAccess"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/IndexCreationLambdaExecutionRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBNetworkPolicy942B8250": {
+   "Type": "AWS::OpenSearchServerless::SecurityPolicy",
+   "Properties": {
+    "Description": "Security policy for network access",
+    "Name": "multi-agent-orchestra-co-network",
+    "Policy": "[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/multi-agent-orchestra-collection\"]},{\"ResourceType\":\"dashboard\",\"Resource\":[\"collection/multi-agent-orchestra-collection\"]}],\"AllowFromPublic\":true}]",
+    "Type": "network"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/NetworkPolicy"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBEncryptionPolicy6881A73D": {
+   "Type": "AWS::OpenSearchServerless::SecurityPolicy",
+   "Properties": {
+    "Description": "Security policy for encryption",
+    "Name": "multi-agent-orchestra-encryption",
+    "Policy": "{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/multi-agent-orchestra-collection\"]}],\"AWSOwnedKey\":true}",
+    "Type": "encryption"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/EncryptionPolicy"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBAccessPolicyED77D4B2": {
+   "Type": "AWS::OpenSearchServerless::AccessPolicy",
+   "Properties": {
+    "Description": "Data Access Policy for multi-agent-orchestra-collection",
+    "Name": "multi-agent-orchestra-col-access",
+    "Policy": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"Description\":\"Full Data Access\",\"Rules\":[{\"Permission\":[\"aoss:CreateCollectionItems\",\"aoss:DeleteCollectionItems\",\"aoss:UpdateCollectionItems\",\"aoss:DescribeCollectionItems\"],\"ResourceType\":\"collection\",\"Resource\":[\"collection/multi-agent-orchestra-collection\"]},{\"Permission\":[\"aoss:CreateIndex\",\"aoss:DeleteIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"],\"ResourceType\":\"index\",\"Resource\":[\"index/multi-agent-orchestra-collection/*\"]}],\"Principal\":[\"",
+       {
+        "Fn::GetAtt": [
+         "MutiAgentOrchestratorDocKbAOSSCollectionForKBIndexCreationLambdaExecutionRoleA655E5AB",
+         "Arn"
+        ]
+       },
+       "\",\"",
+       {
+        "Fn::GetAtt": [
+         "MutiAgentOrchestratorDocKbBedrockKBServiceRole801F508D",
+         "Arn"
+        ]
+       },
+       "\",\"",
+       {
+        "Fn::GetAtt": [
+         "MutiAgentOrchestratorDocKbPermissionValidationRole22C0C014",
+         "Arn"
+        ]
+       },
+       "\"]}]"
+      ]
+     ]
+    },
+    "Type": "data"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/AccessPolicy"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442": {
+   "Type": "AWS::OpenSearchServerless::Collection",
+   "Properties": {
+    "Description": "OpenSearch Serverless collection for Multi-agent orchestrator",
+    "Name": "multi-agent-orchestra-collection",
+    "Type": "VECTORSEARCH"
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBAccessPolicyED77D4B2",
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBEncryptionPolicy6881A73D",
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBNetworkPolicy942B8250"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Collection"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBCustomResourceHandler3F9C6ACE": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "6df47464e7214f96586b0a5a8e0f2f62246de7b57c2295cc2bf604f5285c133c.zip"
+    },
+    "Handler": "index.onEvent",
+    "Layers": [
+     "arn:aws:lambda:us-east-1:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:2"
+    ],
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbAOSSCollectionForKBIndexCreationLambdaExecutionRoleA655E5AB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBIndexCreationLambdaExecutionRoleA655E5AB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/CustomResourceHandler/Resource",
+    "aws:asset:path": "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleF2FBF23B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/ServiceRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleDefaultPolicy771A3F6F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "MutiAgentOrchestratorDocKbAOSSCollectionForKBCustomResourceHandler3F9C6ACE",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "MutiAgentOrchestratorDocKbAOSSCollectionForKBCustomResourceHandler3F9C6ACE",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleDefaultPolicy771A3F6F",
+    "Roles": [
+     {
+      "Ref": "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleF2FBF23B"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEvent7C7B504F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a.zip"
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "MutiAgentOrchestratorDocKbAOSSCollectionForKBCustomResourceHandler3F9C6ACE",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleF2FBF23B",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleDefaultPolicy771A3F6F",
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleF2FBF23B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbAOSSCollectionForKBOpenSearchIndexDDA97914": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEvent7C7B504F",
+      "Arn"
+     ]
+    },
+    "indexName": "agent-blueprints-kb-default-index",
+    "collectionEndpoint": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442",
+      "CollectionEndpoint"
+     ]
+    }
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/OpenSearchIndex/Default"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionCustomResourceHandler4F0F6824": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "870b01bb96bd4c7772ab1711586b0a00f97131331a09b43aed15ce12eaa7366f.zip"
+    },
+    "Handler": "index.onEvent",
+    "Layers": [
+     "arn:aws:lambda:us-east-1:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:2"
+    ],
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbPermissionValidationRole22C0C014",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbPermissionValidationRole22C0C014"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionCustomResourceHandler/Resource",
+    "aws:asset:path": "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRole0AC694CF": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/ServiceRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRoleDefaultPolicy1DD681E4": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "MutiAgentOrchestratorDocKbPermissionCustomResourceHandler4F0F6824",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "MutiAgentOrchestratorDocKbPermissionCustomResourceHandler4F0F6824",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRoleDefaultPolicy1DD681E4",
+    "Roles": [
+     {
+      "Ref": "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRole0AC694CF"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEvent6C2CDBEB": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a.zip"
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "MutiAgentOrchestratorDocKbPermissionCustomResourceHandler4F0F6824",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRole0AC694CF",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRoleDefaultPolicy1DD681E4",
+    "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRole0AC694CF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbPermissionValidationCustomResource0765F2E8": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEvent6C2CDBEB",
+      "Arn"
+     ]
+    },
+    "collectionEndpoint": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442",
+      "CollectionEndpoint"
+     ]
+    },
+    "indexName": "agent-blueprints-kb-default-index"
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationCustomResource/Default"
+   }
+  },
+  "MutiAgentOrchestratorDocKbBlueprintsDataSource6CC66FFA": {
+   "Type": "AWS::Bedrock::DataSource",
+   "Properties": {
+    "DataDeletionPolicy": "RETAIN",
+    "DataSourceConfiguration": {
+     "S3Configuration": {
+      "BucketArn": {
+       "Fn::GetAtt": [
+        "DocumentsBucket9EC9DEB9",
+        "Arn"
+       ]
+      }
+     },
+     "Type": "S3"
+    },
+    "Description": "Data source for KB",
+    "KnowledgeBaseId": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3",
+      "KnowledgeBaseId"
+     ]
+    },
+    "Name": "Multi-agent-orchestrator-doc-kb-DataSource",
+    "VectorIngestionConfiguration": {
+     "ChunkingConfiguration": {
+      "ChunkingStrategy": "FIXED_SIZE",
+      "FixedSizeChunkingConfiguration": {
+       "MaxTokens": 1024,
+       "OverlapPercentage": 20
+      }
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/BlueprintsDataSource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbDataSyncLambdaRole637F6A74": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": [
+          "bedrock:DeleteDataSource",
+          "bedrock:DeleteKnowledgeBase",
+          "bedrock:GetDataSource",
+          "bedrock:StartIngestionJob",
+          "bedrock:UpdateDataSource"
+         ],
+         "Effect": "Allow",
+         "Resource": {
+          "Fn::Join": [
+           "",
+           [
+            "arn:aws:bedrock:us-east-1:381491977884:knowledge-base/",
+            {
+             "Fn::GetAtt": [
+              "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3",
+              "KnowledgeBaseId"
+             ]
+            }
+           ]
+          ]
+         }
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "DataSyncAccess"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncLambdaRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbDataSyncCustomResourceHandlerFF3AEBCF": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "828d5dfcbaff9270ab1914ce4c0b0cbccc8d096141eedb45ee09ecb1e144c5dd.zip"
+    },
+    "Handler": "index.onEvent",
+    "Layers": [
+     "arn:aws:lambda:us-east-1:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:2"
+    ],
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbDataSyncLambdaRole637F6A74",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbDataSyncLambdaRole637F6A74"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncCustomResourceHandler/Resource",
+    "aws:asset:path": "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRole7846DCD8": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/ServiceRole/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRoleDefaultPolicyCEA6BB32": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "MutiAgentOrchestratorDocKbDataSyncCustomResourceHandlerFF3AEBCF",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "MutiAgentOrchestratorDocKbDataSyncCustomResourceHandlerFF3AEBCF",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRoleDefaultPolicyCEA6BB32",
+    "Roles": [
+     {
+      "Ref": "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRole7846DCD8"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "MutiAgentOrchestratorDocKbProviderframeworkonEventB575E6D2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a.zip"
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (ChatDemoStack/MutiAgentOrchestratorDocKb/Provider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "MutiAgentOrchestratorDocKbDataSyncCustomResourceHandlerFF3AEBCF",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Role": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRole7846DCD8",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRoleDefaultPolicyCEA6BB32",
+    "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRole7846DCD8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.8ba5ee0003de28bf8e4a4fc7e1821c881abd3a80657825533ed1c301bec7e74a",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MutiAgentOrchestratorDocKbDataSyncLambdaC957DB56": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbProviderframeworkonEventB575E6D2",
+      "Arn"
+     ]
+    },
+    "knowledgeBaseId": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3",
+      "KnowledgeBaseId"
+     ]
+    },
+    "dataSourceId": {
+     "Fn::GetAtt": [
+      "MutiAgentOrchestratorDocKbBlueprintsDataSource6CC66FFA",
+      "DataSourceId"
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncLambda/Default"
+   }
+  },
+  "DeployDocumentationAwsCliLayer51ED56B3": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/DeployDocumentation/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "DeployDocumentationCustomResourceE2B9BF26": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "cdk-hnb659fds-assets-381491977884-us-east-1"
+    ],
+    "SourceObjectKeys": [
+     "374a9274a3c51774bb7113b5e64b89742492e7462c16eb7fc4dba4717f3080d8.zip",
+     "823510f57cee72a4c1df3f7e63724ee512a5010f5b886d5c2737e22c3ba53b1f.zip",
+     "652f46a465d8eba623c2145bdabf6dfa0bdfe0f4d7d578d7c8a0d65b261d80dd.zip"
+    ],
+    "SourceMarkers": [
+     {},
+     {},
+     {}
+    ],
+    "DestinationBucketName": {
+     "Ref": "DocumentsBucket9EC9DEB9"
+    },
+    "Prune": true,
+    "OutputObjectKeys": true
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/DeployDocumentation/CustomResource/Default"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws:s3:::cdk-hnb659fds-assets-381491977884-us-east-1",
+        "arn:aws:s3:::cdk-hnb659fds-assets-381491977884-us-east-1/*"
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "DocumentsBucket9EC9DEB9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "DocumentsBucket9EC9DEB9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+     }
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "DeployDocumentationAwsCliLayer51ED56B3"
+     }
+    ],
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.11",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+    "aws:asset:path": "asset.c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "BasicLambdaRole2937C09E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/BasicLambdaRole/Resource"
+   }
+  },
+  "BasicLambdaRoleDefaultPolicy19DE87B1": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SessionTableA016F679",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "PythonLambda2C2BA927",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "PythonLambda2C2BA927",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:bedrock:",
+          {
+           "Ref": "AWS::Region"
+          },
+          "::foundation-model/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "bedrock:Retrieve",
+        "bedrock:RetrieveAndGenerate"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":bedrock:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":knowledge-base/",
+           {
+            "Fn::GetAtt": [
+             "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3",
+             "KnowledgeBaseId"
+            ]
+           }
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:bedrock:",
+           {
+            "Ref": "AWS::Region"
+           },
+           "::foundation-model/*"
+          ]
+         ]
+        }
+       ],
+       "Sid": "AmazonBedrockKbPermission"
+      },
+      {
+       "Action": "lex:RecognizeText",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:bedrock:",
+           {
+            "Ref": "AWS::Region"
+           },
+           "::foundation-model/*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:lex:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":bot-alias/",
+           {
+            "Fn::GetAtt": [
+             "InvokeLexImportFunction",
+             "bot_id"
+            ]
+           },
+           "/",
+           {
+            "Fn::GetAtt": [
+             "InvokeLexImportFunction",
+             "bot_alias_id"
+            ]
+           }
+          ]
+         ]
+        }
+       ],
+       "Sid": "LexPermission"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BasicLambdaRoleDefaultPolicy19DE87B1",
+    "Roles": [
+     {
+      "Ref": "BasicLambdaRole2937C09E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/BasicLambdaRole/DefaultPolicy/Resource"
+   }
+  },
+  "SessionTableA016F679": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "TimeToLiveSpecification": {
+     "AttributeName": "TTL",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/SessionTable/Resource"
+   }
+  },
+  "PythonLambdaServiceRole3DE0935D": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/PythonLambda/ServiceRole/Resource"
+   }
+  },
+  "PythonLambda2C2BA927": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "58e25da5585fb2ff5b16417c333c93fc4d38fb9f58f9ed7a4c08054a8a94c8ef.zip"
+    },
+    "Handler": "lambda.lambda_handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "PythonLambdaServiceRole3DE0935D",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "PythonLambdaServiceRole3DE0935D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/PythonLambda/Resource",
+    "aws:asset:path": "asset.58e25da5585fb2ff5b16417c333c93fc4d38fb9f58f9ed7a4c08054a8a94c8ef",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MultiAgentLambda903F39F0": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "f6666b1fdfa98a362acf7491ee683ec7e8b8566b73caa8d49ef2ba03a39b2ff2.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "POWERTOOLS_SERVICE_NAME": "multi-agent",
+      "POWERTOOLS_LOG_LEVEL": "DEBUG",
+      "HISTORY_TABLE_NAME": {
+       "Ref": "SessionTableA016F679"
+      },
+      "HISTORY_TABLE_TTL_KEY_NAME": "TTL",
+      "HISTORY_TABLE_TTL_DURATION": "3600",
+      "LEX_AGENT_ENABLED": "true",
+      "LEX_AGENT_CONFIG": {
+       "Fn::Join": [
+        "",
+        [
+         "{\"botId\":\"",
+         {
+          "Fn::GetAtt": [
+           "InvokeLexImportFunction",
+           "bot_id"
+          ]
+         },
+         "\",\"botAliasId\":\"",
+         {
+          "Fn::GetAtt": [
+           "InvokeLexImportFunction",
+           "bot_alias_id"
+          ]
+         },
+         "\",\"localeId\":\"en_US\",\"description\":\"Helps users book and manage their flight reservation\",\"name\":\"",
+         {
+          "Ref": "BotName"
+         },
+         "\"}"
+        ]
+       ]
+      },
+      "KNOWLEDGE_BASE_ID": {
+       "Fn::GetAtt": [
+        "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3",
+        "KnowledgeBaseId"
+       ]
+      },
+      "LAMBDA_AGENTS": {
+       "Fn::Join": [
+        "",
+        [
+         "[{\"description\":\"This is an Agent to use when you forgot about your own name\",\"name\":\"Find my name\",\"functionName\":\"",
+         {
+          "Ref": "PythonLambda2C2BA927"
+         },
+         "\",\"region\":\"",
+         {
+          "Ref": "AWS::Region"
+         },
+         "\"}]"
+        ]
+       ]
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     "arn:aws:lambda:us-east-1:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:2"
+    ],
+    "MemorySize": 2048,
+    "Role": {
+     "Fn::GetAtt": [
+      "BasicLambdaRole2937C09E",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "BasicLambdaRoleDefaultPolicy19DE87B1",
+    "BasicLambdaRole2937C09E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MultiAgentLambda/Resource",
+    "aws:asset:path": "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MultiAgentLambdaFunctionUrl963F48F0": {
+   "Type": "AWS::Lambda::Url",
+   "Properties": {
+    "AuthType": "AWS_IAM",
+    "InvokeMode": "RESPONSE_STREAM",
+    "TargetFunctionArn": {
+     "Fn::GetAtt": [
+      "MultiAgentLambda903F39F0",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/MultiAgentLambda/FunctionUrl/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1VR227bMAz9lr4rWpcC23PqYsCwWxCvezVoicmU0JJBSjEMw/8+SG7i9UU8h+ThRdzqj5+3+vEBBtkYe9mQa/VURzAXZSgkewzcQXTBN84bShZ1dfRfF6iqo/8Bfe/8KcM9MHQYkRUM0kwOOj1VR38IhKo8+0DOjCW1oFkRdK2FkvYleZP7lDBy50Qy+9/9HUbkP8glUDt/IoxhFd7AK1POfmWalR09dMG2pcVvaAlVeWclT3p6TuaCMSe/ocWsc77jC3kGwVm1aDmYSyn7zYeB0J4wh7LqBSLUIbHBWYUevSCw+SvIV2RCkaKq0SR2cVyb7YxBkZVXgQjLRrePanyweBb9s5j74vLUTCCCUfQuG2WxpzB26KNehn65O+Y5lz6glPky/pVin6KqksTQrYF3dM/h6ixy2bD0qCOc8t3vAlMEDb9x0TfNbXbK12tgEENO7wapyJWDzipvpc/y4brd6k/68eEszm04+eg61IfF/gPYA3i8qAIAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "ChatDemoStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "AmazonConnect": {
+   "Description": "Connect Status",
+   "Value": {
+    "Fn::GetAtt": "InvokeConnectImportFunction.ContactFlowDescription"
+   }
+  },
+  "CustomerData": {
+   "Description": "Sample customer data",
+   "Value": "https://lex-usecases-templates.s3.amazonaws.com/AirlinesBot_customer_data.html"
+  },
+  "ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionUrlE48871FA": {
+   "Value": {
+    "Fn::GetAtt": [
+     "MultiAgentLambdaFunctionUrl963F48F0",
+     "FunctionUrl"
+    ]
+   },
+   "Export": {
+    "Name": "ChatDemoStack:ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionUrlE48871FA"
+   }
+  },
+  "ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionArnCD9CF099": {
+   "Value": {
+    "Fn::GetAtt": [
+     "MultiAgentLambdaFunctionUrl963F48F0",
+     "FunctionArn"
+    ]
+   },
+   "Export": {
+    "Name": "ChatDemoStack:ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionArnCD9CF099"
+   }
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

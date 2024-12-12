@@ -1,0 +1,748 @@
+{
+  "version": "38.0.1",
+  "artifacts": {
+    "ChatDemoStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "ChatDemoStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "ChatDemoStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://381491977884/us-east-1",
+      "properties": {
+        "templateFile": "ChatDemoStack.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-deploy-role-381491977884-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-cfn-exec-role-381491977884-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-381491977884-us-east-1/0948a9b14047d86438f0a08acc9f05e3fa5c87e147139a21928ca73c5eca2daa.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "ChatDemoStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-lookup-role-381491977884-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "ChatDemoStack.assets"
+      ],
+      "metadata": {
+        "/ChatDemoStack/LexAgent/template": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LexAgenttemplate0811342A"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/$Mappings/BucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketName"
+          },
+          {
+            "type": "aws:cdk:info",
+            "data": "Consider making this CfnMapping a lazy mapping by providing `lazy: true`: either no findInMap was called or every findInMap could be immediately resolved without using Fn::FindInMap",
+            "trace": [
+              "Annotations.addMessage (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1608)",
+              "Annotations.addInfo (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1015)",
+              "CfnMapping.informLazyUse (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/cfn-mapping.js:1:2258)",
+              "CfnMapping._toCloudFormation (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/cfn-mapping.js:1:2085)",
+              "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4276",
+              "findTokens (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/resolve.js:1:3847)",
+              "findAllReferences (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4253)",
+              "resolveReferences (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:1320)",
+              "prepareApp (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/prepare-app.js:1:806)",
+              "synthesize (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1607)",
+              "App.synth (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/stage.js:1:2474)",
+              "process.<anonymous> (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/app.js:1:1767)",
+              "Object.onceWrapper (node:events:635:26)",
+              "process.emit (node:events:520:28)",
+              "process.emit (node:domain:488:12)",
+              "process.emit.sharedData.processEmitHook.installedValue [as emit] (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/@cspotcode/source-map-support/source-map-support.js:745:40)"
+            ]
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/$Mappings/S3Path": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "S3Path"
+          },
+          {
+            "type": "aws:cdk:info",
+            "data": "Consider making this CfnMapping a lazy mapping by providing `lazy: true`: either no findInMap was called or every findInMap could be immediately resolved without using Fn::FindInMap",
+            "trace": [
+              "Annotations.addMessage (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1608)",
+              "Annotations.addInfo (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1015)",
+              "CfnMapping.informLazyUse (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/cfn-mapping.js:1:2258)",
+              "CfnMapping._toCloudFormation (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/cfn-mapping.js:1:2085)",
+              "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4276",
+              "findTokens (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/resolve.js:1:3847)",
+              "findAllReferences (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4253)",
+              "resolveReferences (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:1320)",
+              "prepareApp (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/prepare-app.js:1:806)",
+              "synthesize (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1607)",
+              "App.synth (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/stage.js:1:2474)",
+              "process.<anonymous> (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/aws-cdk-lib/core/lib/app.js:1:1767)",
+              "Object.onceWrapper (node:events:635:26)",
+              "process.emit (node:events:520:28)",
+              "process.emit (node:domain:488:12)",
+              "process.emit.sharedData.processEmitHook.installedValue [as emit] (/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/node_modules/@cspotcode/source-map-support/source-map-support.js:745:40)"
+            ]
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/ConnectInstanceARN": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConnectInstanceARN"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/ContactFlowName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ContactFlowName"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/BusinessLogicFunctionName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BusinessLogicFunctionName"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/BotName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BotName"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/DynamoDBTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DynamoDBTableName"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LexRole": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LexRole"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LexImportRole": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LexImportRole"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LexImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LexImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/DynamoDBTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DynamoDBTable"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LambdaRole": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LambdaRole"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/InvokeLexImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "InvokeLexImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LambdaBusinessLogic": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LambdaBusinessLogic"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/DynamoDBImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DynamoDBImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/InvokeDynamoDBImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "InvokeDynamoDBImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/LambdaPermission": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LambdaPermission"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/ConnectRole": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConnectRole"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/ConnectImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConnectImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/InvokeConnectImportFunction": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "InvokeConnectImportFunction"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/$Outputs/AmazonConnect": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AmazonConnect"
+          }
+        ],
+        "/ChatDemoStack/LexAgent/template/$Outputs/CustomerData": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomerData"
+          }
+        ],
+        "/ChatDemoStack/DocumentsBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DocumentsBucket9EC9DEB9"
+          }
+        ],
+        "/ChatDemoStack/DocumentsBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DocumentsBucketPolicy1F991BD4"
+          }
+        ],
+        "/ChatDemoStack/DocumentsBucket/AutoDeleteObjectsCustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DocumentsBucketAutoDeleteObjectsCustomResourceFE3123FC"
+          }
+        ],
+        "/ChatDemoStack/Custom::S3AutoDeleteObjectsCustomResourceProvider": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+            "data": true
+          }
+        ],
+        "/ChatDemoStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+          }
+        ],
+        "/ChatDemoStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/BedrockKBServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbBedrockKBServiceRole801F508D"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/BedrockKBServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbBedrockKBServiceRoleDefaultPolicy5858AC9A"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/KnowledgeBase": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbKnowledgeBase1C8136A3"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionValidationRole22C0C014"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/IndexCreationLambdaExecutionRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBIndexCreationLambdaExecutionRoleA655E5AB"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/NetworkPolicy": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBNetworkPolicy942B8250"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/EncryptionPolicy": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBEncryptionPolicy6881A73D"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/AccessPolicy": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBAccessPolicyED77D4B2"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Collection": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBCollection0BF37442"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/CustomResourceHandler/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBCustomResourceHandler3F9C6ACE"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleF2FBF23B"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEventServiceRoleDefaultPolicy771A3F6F"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/Provider/framework-onEvent/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBProviderframeworkonEvent7C7B504F"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/AOSSCollectionForKB/OpenSearchIndex/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbAOSSCollectionForKBOpenSearchIndexDDA97914"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionCustomResourceHandler/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionCustomResourceHandler4F0F6824"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRole0AC694CF"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEventServiceRoleDefaultPolicy1DD681E4"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationProvider/framework-onEvent/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionValidationProviderframeworkonEvent6C2CDBEB"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/PermissionValidationCustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbPermissionValidationCustomResource0765F2E8"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/BlueprintsDataSource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbBlueprintsDataSource6CC66FFA"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncLambdaRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbDataSyncLambdaRole637F6A74"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncCustomResourceHandler/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbDataSyncCustomResourceHandlerFF3AEBCF"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRole7846DCD8"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbProviderframeworkonEventServiceRoleDefaultPolicyCEA6BB32"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/Provider/framework-onEvent/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbProviderframeworkonEventB575E6D2"
+          }
+        ],
+        "/ChatDemoStack/MutiAgentOrchestratorDocKb/DataSyncLambda/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MutiAgentOrchestratorDocKbDataSyncLambdaC957DB56"
+          }
+        ],
+        "/ChatDemoStack/DeployDocumentation/AwsCliLayer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeployDocumentationAwsCliLayer51ED56B3"
+          }
+        ],
+        "/ChatDemoStack/DeployDocumentation/CustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeployDocumentationCustomResourceE2B9BF26"
+          }
+        ],
+        "/ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-singleton",
+            "data": true
+          },
+          {
+            "type": "aws:cdk:is-custom-resource-handler-runtime-family",
+            "data": 2
+          }
+        ],
+        "/ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+          }
+        ],
+        "/ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF"
+          }
+        ],
+        "/ChatDemoStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536"
+          }
+        ],
+        "/ChatDemoStack/BasicLambdaRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BasicLambdaRole2937C09E"
+          }
+        ],
+        "/ChatDemoStack/BasicLambdaRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BasicLambdaRoleDefaultPolicy19DE87B1"
+          }
+        ],
+        "/ChatDemoStack/SessionTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SessionTableA016F679"
+          }
+        ],
+        "/ChatDemoStack/PythonLambda/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PythonLambdaServiceRole3DE0935D"
+          }
+        ],
+        "/ChatDemoStack/PythonLambda/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PythonLambda2C2BA927"
+          }
+        ],
+        "/ChatDemoStack/MultiAgentLambda/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MultiAgentLambda903F39F0"
+          }
+        ],
+        "/ChatDemoStack/MultiAgentLambda/FunctionUrl/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MultiAgentLambdaFunctionUrl963F48F0"
+          }
+        ],
+        "/ChatDemoStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/ChatDemoStack/Exports/Output{\"Fn::GetAtt\":[\"MultiAgentLambdaFunctionUrl963F48F0\",\"FunctionUrl\"]}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionUrlE48871FA"
+          }
+        ],
+        "/ChatDemoStack/Exports/Output{\"Fn::GetAtt\":[\"MultiAgentLambdaFunctionUrl963F48F0\",\"FunctionArn\"]}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionArnCD9CF099"
+          }
+        ],
+        "/ChatDemoStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/ChatDemoStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "ChatDemoStack"
+    },
+    "UserInterfaceStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "UserInterfaceStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "UserInterfaceStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://381491977884/us-east-1",
+      "properties": {
+        "templateFile": "UserInterfaceStack.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-deploy-role-381491977884-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-cfn-exec-role-381491977884-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-381491977884-us-east-1/7933f77cb0a0714fcaf3219b776383ea185656254c2c24eec48652f1e24a4a9f.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "UserInterfaceStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-lookup-role-381491977884-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "ChatDemoStack",
+        "UserInterfaceStack.assets"
+      ],
+      "metadata": {
+        "/UserInterfaceStack/WebsiteBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebsiteBucket75C24D94"
+          }
+        ],
+        "/UserInterfaceStack/WebsiteBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebsiteBucketPolicyE10E3262"
+          }
+        ],
+        "/UserInterfaceStack/ResponseHeadersPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ResponseHeadersPolicy13DBF9E0"
+          }
+        ],
+        "/UserInterfaceStack/Distribution/Origin1/S3Origin/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DistributionOrigin1S3Origin5F5C0696"
+          }
+        ],
+        "/UserInterfaceStack/Distribution/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "Distribution830FAC52"
+          }
+        ],
+        "/UserInterfaceStack/UserPool/smsRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolsmsRole4EA729DD"
+          }
+        ],
+        "/UserInterfaceStack/UserPool/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPool6BA7E5F2"
+          }
+        ],
+        "/UserInterfaceStack/UserPool/UserPoolClient/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolUserPoolClient40176907"
+          }
+        ],
+        "/UserInterfaceStack/IdentityPool/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolEC8A1A0D"
+          }
+        ],
+        "/UserInterfaceStack/IdentityPool/AuthenticatedRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolAuthenticatedRole42131CF5"
+          }
+        ],
+        "/UserInterfaceStack/IdentityPool/UnauthenticatedRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolUnauthenticatedRole68AEFF8B"
+          }
+        ],
+        "/UserInterfaceStack/IdentityPool/DefaultRoleAttachment/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolDefaultRoleAttachmentD81AFC39"
+          }
+        ],
+        "/UserInterfaceStack/AuthFunctionAtEdge/Fn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthFunctionAtEdgeFnServiceRoleD2D5A4CA"
+          }
+        ],
+        "/UserInterfaceStack/AuthFunctionAtEdge/Fn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthFunctionAtEdgeFnServiceRoleDefaultPolicy60F68888"
+          }
+        ],
+        "/UserInterfaceStack/AuthFunctionAtEdge/Fn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthFunctionAtEdgeFnF03CD0AF"
+          }
+        ],
+        "/UserInterfaceStack/AuthFunctionAtEdge/Fn/CurrentVersion/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthFunctionAtEdgeFnCurrentVersionB8373C0A3183884e745abeddad54a698e8d59146"
+          }
+        ],
+        "/UserInterfaceStack/CachingDisabledButWithAuth/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CachingDisabledButWithAuthC8989721"
+          }
+        ],
+        "/UserInterfaceStack/UserPoolSecret/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolSecret38FE1ECB"
+          }
+        ],
+        "/UserInterfaceStack/UserInterfaceDeployment/AwsCliLayer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserInterfaceDeploymentAwsCliLayerF2ECCC7C"
+          }
+        ],
+        "/UserInterfaceStack/UserInterfaceDeployment/CustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserInterfaceDeploymentCustomResource00CDC8D7"
+          }
+        ],
+        "/UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-singleton",
+            "data": true
+          },
+          {
+            "type": "aws:cdk:is-custom-resource-handler-runtime-family",
+            "data": 2
+          }
+        ],
+        "/UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+          }
+        ],
+        "/UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF"
+          }
+        ],
+        "/UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536"
+          }
+        ],
+        "/UserInterfaceStack/UserInterfaceDomainName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserInterfaceDomainName"
+          }
+        ],
+        "/UserInterfaceStack/CognitoUserPool": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CognitoUserPool"
+          }
+        ],
+        "/UserInterfaceStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/UserInterfaceStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/UserInterfaceStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "UserInterfaceStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,512 @@
+---
+title: Bedrock LLM Agent
+description: Documentation for the BedrockLLMAgent in the Multi-Agent Orchestrator
+---
+
+## Overview
+
+The **Bedrock LLM Agent** is a powerful and flexible agent class in the Multi-Agent Orchestrator System. It leverages [Amazon Bedrock's Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html) to interact with various LLMs supported by Amazon Bedrock.
+
+This agent can handle a wide range of processing tasks, making it suitable for diverse applications such as conversational AI, question-answering systems, and more.
+
+## Key Features
+
+- Integration with Amazon Bedrock's Converse API
+- Support for multiple LLM models available on Amazon Bedrock
+- Streaming and non-streaming response options
+- Customizable inference configuration
+- Ability to set and update custom system prompts
+- Optional integration with [retrieval systems](/multi-agent-orchestrator/retrievers/overview) for enhanced context
+- Support for [Tool use](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html) within the conversation flow
+
+## Creating a BedrockLLMAgent
+
+By default, the **Bedrock LLM Agent** uses the `anthropic.claude-3-haiku-20240307-v1:0` model.
+
+### Basic Example
+
+To create a new **Bedrock LLM Agent** with only the required parameters, use the following code:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    import { BedrockLLMAgent } from 'multi-agent-orchestrator';
+
+    const agent = new BedrockLLMAgent({
+      name: 'Tech Agent',
+      description: 'Specializes in technology areas including software development, hardware, AI, cybersecurity, blockchain, cloud computing, emerging tech innovations, and pricing/costs related to technology products and services.'
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    from multi_agent_orchestrator.agents import BedrockLLMAgent, BedrockLLMAgentOptions
+
+    agent = BedrockLLMAgent(BedrockLLMAgentOptions(
+        name='Tech Agent',
+        description='Specializes in technology areas including software development, hardware, AI, cybersecurity, blockchain, cloud computing, emerging tech innovations, and pricing/costs related to technology products and services.'
+    ))
+    ```
+  </TabItem>
+</Tabs>
+
+### Advanced Example
+
+For more complex use cases, you can create a **Bedrock LLM Agent** with all available options. All parameters except `name` and `description` are optional:
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    import { BedrockLLMAgent, BedrockLLMAgentOptions } from 'multi-agent-orchestrator';
+    import { Retriever } from '../retrievers/retriever';
+
+    const options: BedrockLLMAgentOptions = {
+      name: 'My Advanced Bedrock Agent',
+      description: 'A versatile agent for complex NLP tasks',
+      modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
+      region: 'us-west-2',
+      streaming: true,
+      inferenceConfig: {
+        maxTokens: 1000,
+        temperature: 0.7,
+        topP: 0.9,
+        stopSequences: ['Human:', 'AI:']
+      },
+      guardrailConfig: {
+        guardrailIdentifier: 'my-guardrail',
+        guardrailVersion: '1.0'
+      },
+      retriever: new Retriever(), // Assuming you have a Retriever class implemented
+      toolConfig: {
+        tool: [
+          {
+            type: 'function',
+            function: {
+              name: 'get_current_weather',
+              description: 'Get the current weather in a given location',
+              parameters: {
+                type: 'object',
+                properties: {
+                  location: {
+                    type: 'string',
+                    description: 'The city and state, e.g. San Francisco, CA'
+                  },
+                  unit: { type: 'string', enum: ['celsius', 'fahrenheit'] }
+                },
+                required: ['location']
+              }
+            }
+          }
+        ]
+      },
+      customSystemPrompt: {
+        template: `You are a specialized AI assistant with multiple capabilities.
+
+Your expertise areas:
+{{AREAS}}
+
+When responding:
+{{GUIDELINES}}
+
+Always maintain: {{TONE}}`,
+        variables: {
+          AREAS: [
+            '- Weather information analysis',
+            '- Data interpretation',
+            '- Natural language processing'
+          ],
+          GUIDELINES: [
+            '- Provide detailed explanations',
+            '- Use relevant examples',
+            '- Consider user context'
+          ],
+          TONE: 'professional and helpful demeanor'
+        }
+      }
+    };
+
+    const agent = new BedrockLLMAgent(options);
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    from multi_agent_orchestrator.agents import BedrockLLMAgent, BedrockLLMAgentOptions
+    from multi_agent_orchestrator.retrievers import Retriever
+
+    options = BedrockLLMAgentOptions(
+        name='My Advanced Bedrock Agent',
+        description='A versatile agent for complex NLP tasks',
+        model_id='anthropic.claude-3-sonnet-20240229-v1:0',
+        region='us-west-2',
+        streaming=True,
+        inference_config={
+            'maxTokens': 1000,
+            'temperature': 0.7,
+            'topP': 0.9,
+            'stopSequences': ['Human:', 'AI:']
+        },
+        guardrail_config={
+            'guardrailIdentifier': 'my-guardrail',
+            'guardrailVersion': '1.0'
+        },
+        retriever=Retriever(),  # Assuming you have a Retriever class implemented
+        tool_config={
+            'tool': [
+                {
+                    'toolSpec': {
+                        'name': 'get_current_weather',
+                        'description': 'Get the current weather in a given location',
+                        'inputSchema': {
+                            'json': {
+                                'type': 'object',
+                                'properties': {
+                                    'location': {
+                                        'type': 'string',
+                                        'description': 'The city and state, e.g. San Francisco, CA'
+                                    },
+                                    'unit': {'type': 'string', 'enum': ['celsius', 'fahrenheit']}
+                                },
+                                'required': ['location']
+                            }
+                        }
+                    }
+                }
+            ],
+            'useToolHandler': lambda response, conversation: (False, response)  # Process tool response
+        },
+        custom_system_prompt={
+            "template": """You are a specialized AI assistant with multiple capabilities.
+
+Your expertise areas:
+{{AREAS}}
+
+When responding:
+{{GUIDELINES}}
+
+Always maintain: {{TONE}}""",
+            "variables": {
+                "AREAS": [
+                    "- Weather information analysis",
+                    "- Data interpretation",
+                    "- Natural language processing"
+                ],
+                "GUIDELINES": [
+                    "- Provide detailed explanations",
+                    "- Use relevant examples",
+                    "- Consider user context"
+                ],
+                "TONE": "professional and helpful demeanor"
+            }
+        }
+    )
+
+    agent = BedrockLLMAgent(options)
+    ```
+  </TabItem>
+</Tabs>
+
+### Option Explanations
+
+- `name` and `description`: Required fields to identify and describe the agent's purpose
+- `modelId`/`model_id`: Specifies the LLM model to use (e.g., Claude 3 Sonnet)
+- `region`: AWS region for the Bedrock service
+- `streaming`: Enables streaming responses for real-time output
+- `inferenceConfig`/`inference_config`: Fine-tunes the model's output characteristics
+- `guardrailConfig`/`guardrail_config`: Applies predefined guardrails to the model's responses
+- `retriever`: Integrates a retrieval system for enhanced context
+- `toolConfig`/`tool_config`: Defines tools the agent can use and how to handle their responses
+- `customSystemPrompt`/`custom_system_prompt`: Defines the agent's system prompt and behavior, with optional variables for dynamic content
+- `client`: Optional custom Bedrock client for specialized configurations
+
+## Setting Custom Prompts
+
+The BedrockLLMAgent provides multiple ways to set custom prompts. You can set them either during initialization or after the agent is created, and you can use prompts with or without variables.
+
+### 1. Setting Custom Prompt During Initialization (Without Variables)
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    import { BedrockLLMAgent, BedrockLLMAgentOptions } from 'multi-agent-orchestrator';
+
+    const agent = new BedrockLLMAgent({
+      name: 'Tech Expert',
+      description: 'Technology and software development expert',
+      modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
+      customSystemPrompt: {
+        template: `You are a technology expert specializing in software development.
+
+Core Competencies:
+1. Programming Languages
+2. Software Architecture
+3. Best Practices
+4. Performance Optimization
+
+When providing technical advice:
+- Start with fundamentals
+- Include code examples when relevant
+- Explain complex concepts simply
+- Consider security implications`
+      }
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    from multi_agent_orchestrator.agents import BedrockLLMAgent, BedrockLLMAgentOptions
+
+    agent = BedrockLLMAgent(BedrockLLMAgentOptions(
+        name='Tech Expert',
+        description='Technology and software development expert',
+        model_id='anthropic.claude-3-sonnet-20240229-v1:0',
+        custom_system_prompt={
+            "template": """You are a technology expert specializing in software development.
+
+Core Competencies:
+1. Programming Languages
+2. Software Architecture
+3. Best Practices
+4. Performance Optimization
+
+When providing technical advice:
+- Start with fundamentals
+- Include code examples when relevant
+- Explain complex concepts simply
+- Consider security implications"""
+        }
+    ))
+    ```
+  </TabItem>
+</Tabs>
+
+### 2. Setting Custom Prompt During Initialization (With Variables)
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    const agent = new BedrockLLMAgent({
+      name: 'Creative Writer',
+      description: 'Creative writing and storytelling expert',
+      modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
+      customSystemPrompt: {
+        template: `You are a {{ROLE}} specializing in {{SPECIALTY}}.
+
+Key strengths:
+{{STRENGTHS}}
+
+When crafting content:
+{{GUIDELINES}}
+
+Style: {{STYLE}}`,
+        variables: {
+          ROLE: 'creative writing expert',
+          SPECIALTY: 'narrative development',
+          STRENGTHS: [
+            '- Character development',
+            '- Plot structuring',
+            '- Dialogue creation'
+          ],
+          GUIDELINES: [
+            '- Start with a hook',
+            '- Show, don\'t tell',
+            '- Create vivid scenes'
+          ],
+          STYLE: 'engaging and imaginative'
+        }
+      }
+    });
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    agent = BedrockLLMAgent(BedrockLLMAgentOptions(
+        name='Creative Writer',
+        description='Creative writing and storytelling expert',
+        model_id='anthropic.claude-3-sonnet-20240229-v1:0',
+        custom_system_prompt={
+            "template": """You are a {{ROLE}} specializing in {{SPECIALTY}}.
+
+Key strengths:
+{{STRENGTHS}}
+
+When crafting content:
+{{GUIDELINES}}
+
+Style: {{STYLE}}""",
+            "variables": {
+                "ROLE": "creative writing expert",
+                "SPECIALTY": "narrative development",
+                "STRENGTHS": [
+                    "- Character development",
+                    "- Plot structuring",
+                    "- Dialogue creation"
+                ],
+                "GUIDELINES": [
+                    "- Start with a hook",
+                    "- Show, don't tell",
+                    "- Create vivid scenes"
+                ],
+                "STYLE": "engaging and imaginative"
+            }
+        }
+    ))
+    ```
+  </TabItem>
+</Tabs>
+
+### 3. Setting Custom Prompt After Initialization (Without Variables)
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    const agent = new BedrockLLMAgent({
+      name: 'Business Consultant',
+      description: 'Business strategy and management expert'
+    });
+
+    agent.setSystemPrompt(`You are a business strategy consultant.
+
+Key Areas of Focus:
+1. Strategic Planning
+2. Market Analysis
+3. Risk Management
+4. Performance Optimization
+
+When providing business advice:
+- Begin with clear objectives
+- Use data-driven insights
+- Consider market context
+- Provide actionable steps`);
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    agent = BedrockLLMAgent(BedrockLLMAgentOptions(
+        name='Business Consultant',
+        description='Business strategy and management expert'
+    ))
+
+    agent.set_system_prompt("""You are a business strategy consultant.
+
+Key Areas of Focus:
+1. Strategic Planning
+2. Market Analysis
+3. Risk Management
+4. Performance Optimization
+
+When providing business advice:
+- Begin with clear objectives
+- Use data-driven insights
+- Consider market context
+- Provide actionable steps""")
+    ```
+  </TabItem>
+</Tabs>
+
+### 4. Setting Custom Prompt After Initialization (With Variables)
+
+<Tabs syncKey="runtime">
+  <TabItem label="TypeScript" icon="seti:typescript" color="blue">
+    ```typescript
+    const agent = new BedrockLLMAgent({
+      name: 'Education Expert',
+      description: 'Educational specialist and learning consultant'
+    });
+
+    agent.setSystemPrompt(
+      `You are a {{ROLE}} focusing on {{SPECIALTY}}.
+
+Your expertise includes:
+{{EXPERTISE}}
+
+Teaching approach:
+{{APPROACH}}
+
+Core principles:
+{{PRINCIPLES}}
+
+Always maintain a {{TONE}} tone.`,
+      {
+        ROLE: 'education specialist',
+        SPECIALTY: 'personalized learning',
+        EXPERTISE: [
+          '- Curriculum development',
+          '- Learning assessment',
+          '- Educational technology'
+        ],
+        APPROACH: [
+          '- Student-centered learning',
+          '- Active engagement',
+          '- Continuous feedback'
+        ],
+        PRINCIPLES: [
+          '- Clear objectives',
+          '- Scaffolded learning',
+          '- Regular assessment'
+        ],
+        TONE: 'supportive and encouraging'
+      }
+    );
+    ```
+  </TabItem>
+  <TabItem label="Python" icon="seti:python">
+    ```python
+    agent = BedrockLLMAgent(BedrockLLMAgentOptions(
+        name='Education Expert',
+        description='Educational specialist and learning consultant'
+    ))
+
+    agent.set_system_prompt(
+        """You are a {{ROLE}} focusing on {{SPECIALTY}}.
+
+Your expertise includes:
+{{EXPERTISE}}
+
+Teaching approach:
+{{APPROACH}}
+
+Core principles:
+{{PRINCIPLES}}
+
+Always maintain a {{TONE}} tone.""",
+        {
+            "ROLE": "education specialist",
+            "SPECIALTY": "personalized learning",
+            "EXPERTISE": [
+                "- Curriculum development",
+                "- Learning assessment",
+                "- Educational technology"
+            ],
+            "APPROACH": [
+                "- Student-centered learning",
+                "- Active engagement",
+                "- Continuous feedback"
+            ],
+            "PRINCIPLES": [
+                "- Clear objectives",
+                "- Scaffolded learning",
+                "- Regular assessment"
+            ],
+            "TONE": "supportive and encouraging"
+        }
+    )
+    ```
+  </TabItem>
+</Tabs>
+
+### Notes on Custom Prompts
+
+- Variables in templates use the `{{VARIABLE_NAME}}` syntax
+- When using arrays in variables, items are automatically joined with newlines
+- The same template and variable functionality is available both during initialization and after
+- Variables are optional - you can use plain text templates without any variables
+- Setting a new prompt will completely replace the previous prompt
+- The agent will use its default prompt if no custom prompt is specified
+
+Choose the approach that best fits your needs:
+- Use initialization when the prompt is part of the agent's core configuration
+- Use post-initialization when prompts need to be changed dynamically
+- Use variables when parts of the prompt need to be modified frequently
+- Use direct templates when the prompt is static

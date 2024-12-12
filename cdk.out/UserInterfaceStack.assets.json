@@ -1,0 +1,90 @@
+{
+  "version": "38.0.1",
+  "files": {
+    "6369ae828d30394b04197dcd4ac0f9d50c9b823b241e9ebe9e86adc6dbf199ce": {
+      "source": {
+        "path": "asset.6369ae828d30394b04197dcd4ac0f9d50c9b823b241e9ebe9e86adc6dbf199ce",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "6369ae828d30394b04197dcd4ac0f9d50c9b823b241e9ebe9e86adc6dbf199ce.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    },
+    "eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9": {
+      "source": {
+        "path": "asset.eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip",
+        "packaging": "file"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    },
+    "c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762": {
+      "source": {
+        "path": "asset.c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    },
+    "7bd7b4691d062073b04fc8797f8325fd307aae5dc651a03e7d81c922bb3a305a": {
+      "source": {
+        "path": "/Users/anveshradharapu/Documents/Project_Space/Orcinus Orca/Multi-Agent Orchestrator/multi-agent-chat/ui",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "7bd7b4691d062073b04fc8797f8325fd307aae5dc651a03e7d81c922bb3a305a.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    },
+    "8756b072428bacdb06d362d4132bc3fba48727619e0262f91433a1f325d971b2": {
+      "source": {
+        "path": "asset.8756b072428bacdb06d362d4132bc3fba48727619e0262f91433a1f325d971b2",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "8756b072428bacdb06d362d4132bc3fba48727619e0262f91433a1f325d971b2.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    },
+    "7933f77cb0a0714fcaf3219b776383ea185656254c2c24eec48652f1e24a4a9f": {
+      "source": {
+        "path": "UserInterfaceStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "381491977884-us-east-1": {
+          "bucketName": "cdk-hnb659fds-assets-381491977884-us-east-1",
+          "objectKey": "7933f77cb0a0714fcaf3219b776383ea185656254c2c24eec48652f1e24a4a9f.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::381491977884:role/cdk-hnb659fds-file-publishing-role-381491977884-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

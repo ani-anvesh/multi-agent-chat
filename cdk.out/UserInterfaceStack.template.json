@@ -1,0 +1,1041 @@
+{
+ "Description": "Multi Agent Orchestrator User Interface (uksb-2mz8io1d9k)",
+ "Resources": {
+  "WebsiteBucket75C24D94": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "Tags": [
+     {
+      "Key": "aws-cdk:cr-owned:43fa0b05",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/WebsiteBucket/Resource"
+   }
+  },
+  "WebsiteBucketPolicyE10E3262": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "WebsiteBucket75C24D94"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "WebsiteBucket75C24D94",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "WebsiteBucket75C24D94",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "DistributionOrigin1S3Origin5F5C0696",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "WebsiteBucket75C24D94",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/WebsiteBucket/Policy/Resource"
+   }
+  },
+  "ResponseHeadersPolicy13DBF9E0": {
+   "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+   "Properties": {
+    "ResponseHeadersPolicyConfig": {
+     "Comment": {
+      "Fn::Join": [
+       "",
+       [
+        "ResponseHeadersPolicy",
+        {
+         "Ref": "AWS::StackName"
+        },
+        "-",
+        {
+         "Ref": "AWS::Region"
+        }
+       ]
+      ]
+     },
+     "Name": {
+      "Fn::Join": [
+       "",
+       [
+        "ResponseHeadersPolicy",
+        {
+         "Ref": "AWS::StackName"
+        },
+        "-",
+        {
+         "Ref": "AWS::Region"
+        }
+       ]
+      ]
+     },
+     "SecurityHeadersConfig": {
+      "ContentTypeOptions": {
+       "Override": true
+      },
+      "FrameOptions": {
+       "FrameOption": "DENY",
+       "Override": true
+      },
+      "ReferrerPolicy": {
+       "Override": false,
+       "ReferrerPolicy": "strict-origin-when-cross-origin"
+      },
+      "StrictTransportSecurity": {
+       "AccessControlMaxAgeSec": 31536000,
+       "IncludeSubdomains": true,
+       "Override": true
+      },
+      "XSSProtection": {
+       "ModeBlock": true,
+       "Override": true,
+       "Protection": true
+      }
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/ResponseHeadersPolicy/Resource"
+   }
+  },
+  "DistributionOrigin1S3Origin5F5C0696": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "Identity for UserInterfaceStackDistributionOrigin1BFC00817"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/Distribution/Origin1/S3Origin/Resource"
+   }
+  },
+  "Distribution830FAC52": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "CacheBehaviors": [
+      {
+       "AllowedMethods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PUT",
+        "PATCH",
+        "POST",
+        "DELETE"
+       ],
+       "CachePolicyId": {
+        "Ref": "CachingDisabledButWithAuthC8989721"
+       },
+       "Compress": true,
+       "LambdaFunctionAssociations": [
+        {
+         "EventType": "origin-request",
+         "IncludeBody": true,
+         "LambdaFunctionARN": {
+          "Ref": "AuthFunctionAtEdgeFnCurrentVersionB8373C0A3183884e745abeddad54a698e8d59146"
+         }
+        }
+       ],
+       "OriginRequestPolicyId": "59781a5b-3903-41f3-afcb-af62929ccde1",
+       "PathPattern": "/chat/*",
+       "ResponseHeadersPolicyId": "eaab4381-ed33-4a86-88ca-d9558dc6cd63",
+       "TargetOriginId": "UserInterfaceStackDistributionOrigin269526127",
+       "ViewerProtocolPolicy": "https-only"
+      }
+     ],
+     "Comment": "Multi agent orchestrator demo app",
+     "DefaultCacheBehavior": {
+      "AllowedMethods": [
+       "GET",
+       "HEAD",
+       "OPTIONS",
+       "PUT",
+       "PATCH",
+       "POST",
+       "DELETE"
+      ],
+      "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+      "Compress": true,
+      "ResponseHeadersPolicyId": {
+       "Ref": "ResponseHeadersPolicy13DBF9E0"
+      },
+      "TargetOriginId": "UserInterfaceStackDistributionOrigin1BFC00817",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "DefaultRootObject": "index.html",
+     "Enabled": true,
+     "HttpVersion": "http2and3",
+     "IPV6Enabled": true,
+     "Origins": [
+      {
+       "DomainName": {
+        "Fn::GetAtt": [
+         "WebsiteBucket75C24D94",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "UserInterfaceStackDistributionOrigin1BFC00817",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "DistributionOrigin1S3Origin5F5C0696"
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "CustomOriginConfig": {
+        "OriginProtocolPolicy": "https-only",
+        "OriginSSLProtocols": [
+         "TLSv1.2"
+        ]
+       },
+       "DomainName": {
+        "Fn::Select": [
+         2,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::ImportValue": "ChatDemoStack:ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionUrlE48871FA"
+           }
+          ]
+         }
+        ]
+       },
+       "Id": "UserInterfaceStackDistributionOrigin269526127"
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/Distribution/Resource"
+   }
+  },
+  "UserPoolsmsRole4EA729DD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Condition": {
+        "StringEquals": {
+         "sts:ExternalId": "UserInterfaceStackUserPool87A22D37"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "cognito-idp.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": "sns:Publish",
+         "Effect": "Allow",
+         "Resource": "*"
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "sns-publish"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserPool/smsRole/Resource"
+   }
+  },
+  "UserPool6BA7E5F2": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_phone_number",
+       "Priority": 1
+      },
+      {
+       "Name": "verified_email",
+       "Priority": 2
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": true
+    },
+    "AutoVerifiedAttributes": [
+     "email",
+     "phone_number"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "SmsConfiguration": {
+     "ExternalId": "UserInterfaceStackUserPool87A22D37",
+     "SnsCallerArn": {
+      "Fn::GetAtt": [
+       "UserPoolsmsRole4EA729DD",
+       "Arn"
+      ]
+     }
+    },
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UsernameAttributes": [
+     "email"
+    ],
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserPool/Resource"
+   }
+  },
+  "UserPoolUserPoolClient40176907": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "AllowedOAuthFlows": [
+     "implicit",
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "profile",
+     "phone",
+     "email",
+     "openid",
+     "aws.cognito.signin.user.admin"
+    ],
+    "CallbackURLs": [
+     "https://example.com"
+    ],
+    "ExplicitAuthFlows": [
+     "ALLOW_USER_PASSWORD_AUTH",
+     "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+     "ALLOW_USER_SRP_AUTH",
+     "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "GenerateSecret": false,
+    "SupportedIdentityProviders": [
+     "COGNITO"
+    ],
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserPool/UserPoolClient/Resource"
+   }
+  },
+  "IdentityPoolEC8A1A0D": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": false,
+    "CognitoIdentityProviders": [
+     {
+      "ClientId": {
+       "Ref": "UserPoolUserPoolClient40176907"
+      },
+      "ProviderName": {
+       "Fn::Join": [
+        "",
+        [
+         "cognito-idp.us-east-1.",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Ref": "UserPool6BA7E5F2"
+         }
+        ]
+       ]
+      },
+      "ServerSideTokenCheck": true
+     }
+    ]
+   },
+   "DependsOn": [
+    "UserPool6BA7E5F2",
+    "UserPoolsmsRole4EA729DD",
+    "UserPoolUserPoolClient40176907"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/IdentityPool/Resource"
+   }
+  },
+  "IdentityPoolAuthenticatedRole42131CF5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+        "StringEquals": {
+         "cognito-identity.amazonaws.com:aud": {
+          "Ref": "IdentityPoolEC8A1A0D"
+         }
+        },
+        "ForAnyValue:StringLike": {
+         "cognito-identity.amazonaws.com:amr": "authenticated"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Default Authenticated Role for Identity Pool ",
+       {
+        "Fn::GetAtt": [
+         "IdentityPoolEC8A1A0D",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "UserPool6BA7E5F2",
+    "UserPoolsmsRole4EA729DD",
+    "UserPoolUserPoolClient40176907"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/IdentityPool/AuthenticatedRole/Resource"
+   }
+  },
+  "IdentityPoolUnauthenticatedRole68AEFF8B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+        "StringEquals": {
+         "cognito-identity.amazonaws.com:aud": {
+          "Ref": "IdentityPoolEC8A1A0D"
+         }
+        },
+        "ForAnyValue:StringLike": {
+         "cognito-identity.amazonaws.com:amr": "unauthenticated"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Default Unauthenticated Role for Identity Pool ",
+       {
+        "Fn::GetAtt": [
+         "IdentityPoolEC8A1A0D",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "UserPool6BA7E5F2",
+    "UserPoolsmsRole4EA729DD",
+    "UserPoolUserPoolClient40176907"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/IdentityPool/UnauthenticatedRole/Resource"
+   }
+  },
+  "IdentityPoolDefaultRoleAttachmentD81AFC39": {
+   "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+   "Properties": {
+    "IdentityPoolId": {
+     "Ref": "IdentityPoolEC8A1A0D"
+    },
+    "Roles": {
+     "authenticated": {
+      "Fn::GetAtt": [
+       "IdentityPoolAuthenticatedRole42131CF5",
+       "Arn"
+      ]
+     },
+     "unauthenticated": {
+      "Fn::GetAtt": [
+       "IdentityPoolUnauthenticatedRole68AEFF8B",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "DependsOn": [
+    "UserPool6BA7E5F2",
+    "UserPoolsmsRole4EA729DD",
+    "UserPoolUserPoolClient40176907"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/IdentityPool/DefaultRoleAttachment/Resource"
+   }
+  },
+  "AuthFunctionAtEdgeFnServiceRoleD2D5A4CA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": [
+         "edgelambda.amazonaws.com",
+         "lambda.amazonaws.com"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/AuthFunctionAtEdge/Fn/ServiceRole/Resource"
+   }
+  },
+  "AuthFunctionAtEdgeFnServiceRoleDefaultPolicy60F68888": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "secretsmanager:GetSecretValue",
+       "Effect": "Allow",
+       "Resource": "arn:aws:secretsmanager:us-east-1:381491977884:secret:UserPoolSecret*"
+      },
+      {
+       "Action": "lambda:InvokeFunctionUrl",
+       "Condition": {
+        "StringEquals": {
+         "lambda:FunctionUrlAuthType": "AWS_IAM"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "ChatDemoStack:ExportsOutputFnGetAttMultiAgentLambdaFunctionUrl963F48F0FunctionArnCD9CF099"
+       },
+       "Sid": "AllowInvokeFunctionUrl"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AuthFunctionAtEdgeFnServiceRoleDefaultPolicy60F68888",
+    "Roles": [
+     {
+      "Ref": "AuthFunctionAtEdgeFnServiceRoleD2D5A4CA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/AuthFunctionAtEdge/Fn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AuthFunctionAtEdgeFnF03CD0AF": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "6369ae828d30394b04197dcd4ac0f9d50c9b823b241e9ebe9e86adc6dbf199ce.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AuthFunctionAtEdgeFnServiceRoleD2D5A4CA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x"
+   },
+   "DependsOn": [
+    "AuthFunctionAtEdgeFnServiceRoleDefaultPolicy60F68888",
+    "AuthFunctionAtEdgeFnServiceRoleD2D5A4CA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/AuthFunctionAtEdge/Fn/Resource",
+    "aws:asset:path": "asset.6369ae828d30394b04197dcd4ac0f9d50c9b823b241e9ebe9e86adc6dbf199ce",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AuthFunctionAtEdgeFnCurrentVersionB8373C0A3183884e745abeddad54a698e8d59146": {
+   "Type": "AWS::Lambda::Version",
+   "Properties": {
+    "FunctionName": {
+     "Ref": "AuthFunctionAtEdgeFnF03CD0AF"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/AuthFunctionAtEdge/Fn/CurrentVersion/Resource"
+   }
+  },
+  "CachingDisabledButWithAuthC8989721": {
+   "Type": "AWS::CloudFront::CachePolicy",
+   "Properties": {
+    "CachePolicyConfig": {
+     "DefaultTTL": 0,
+     "MaxTTL": 60,
+     "MinTTL": 0,
+     "Name": "UserInterfaceStackCachingDisabledButWithAuth29533799-us-east-1",
+     "ParametersInCacheKeyAndForwardedToOrigin": {
+      "CookiesConfig": {
+       "CookieBehavior": "none"
+      },
+      "EnableAcceptEncodingBrotli": false,
+      "EnableAcceptEncodingGzip": false,
+      "HeadersConfig": {
+       "HeaderBehavior": "whitelist",
+       "Headers": [
+        "Authorization"
+       ]
+      },
+      "QueryStringsConfig": {
+       "QueryStringBehavior": "none"
+      }
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/CachingDisabledButWithAuth/Resource"
+   }
+  },
+  "UserPoolSecret38FE1ECB": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Name": "UserPoolSecretConfig",
+    "SecretString": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"ClientID\":\"",
+       {
+        "Ref": "UserPoolUserPoolClient40176907"
+       },
+       "\",\"UserPoolID\":\"",
+       {
+        "Ref": "UserPool6BA7E5F2"
+       },
+       "\"}"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserPoolSecret/Resource"
+   }
+  },
+  "UserInterfaceDeploymentAwsCliLayerF2ECCC7C": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserInterfaceDeployment/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.eafa2d6c6a55bda16b1603003f1721e2f66a024c0c31d6665ee1c5ff59b565d9.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "UserInterfaceDeploymentCustomResource00CDC8D7": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "cdk-hnb659fds-assets-381491977884-us-east-1"
+    ],
+    "SourceObjectKeys": [
+     "7bd7b4691d062073b04fc8797f8325fd307aae5dc651a03e7d81c922bb3a305a.zip",
+     "8756b072428bacdb06d362d4132bc3fba48727619e0262f91433a1f325d971b2.zip"
+    ],
+    "SourceMarkers": [
+     {},
+     {
+      "<<marker:0xbaba:0>>": {
+       "Ref": "AWS::Region"
+      },
+      "<<marker:0xbaba:1>>": {
+       "Fn::GetAtt": [
+        "Distribution830FAC52",
+        "DomainName"
+       ]
+      },
+      "<<marker:0xbaba:2>>": {
+       "Ref": "UserPoolUserPoolClient40176907"
+      },
+      "<<marker:0xbaba:3>>": {
+       "Ref": "UserPool6BA7E5F2"
+      },
+      "<<marker:0xbaba:4>>": {
+       "Ref": "IdentityPoolEC8A1A0D"
+      }
+     }
+    ],
+    "DestinationBucketName": {
+     "Ref": "WebsiteBucket75C24D94"
+    },
+    "Prune": false,
+    "DistributionId": {
+     "Ref": "Distribution830FAC52"
+    },
+    "OutputObjectKeys": true
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/UserInterfaceDeployment/CustomResource/Default"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws:s3:::cdk-hnb659fds-assets-381491977884-us-east-1",
+        "arn:aws:s3:::cdk-hnb659fds-assets-381491977884-us-east-1/*"
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "WebsiteBucket75C24D94",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "WebsiteBucket75C24D94",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-381491977884-us-east-1",
+     "S3Key": "c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+     }
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "UserInterfaceDeploymentAwsCliLayerF2ECCC7C"
+     }
+    ],
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.11",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+    "aws:asset:path": "asset.c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S227bMAz9lrzLappil8elbosOGNAiwfYaMDLjsJElQ6SXBYL/fZCvKdDtieccXnRAaqXj7ZeVXi7gzJkpTpmlvY5bAXNScOZd5Dsd7xtzQlH5wQ2oD6/ekrnM8sB7cg+MrTLWN8UheCc6bpBr7xifEQoMPHd/nHgglkD7Rsg79RKoJLc2Bpm/F+iEpGvN0/ynNP9fFe/G4J8aA1XoBKx+LEp8apzpMjmYI86WrmirjC8didfxJ2N49d6migmPILeETq5TszIaGpuv+cZbXIuAOSZfrSKodExit5oUZ1ujIwvVvgAdZ/sHN+FfGHjQruAPuGAY+ZZcaVH81NQqvttFYEZhvU5BFVhbf0medH/Rh0loFaMJKFyBgxKDjtuOp3d61LZqg+ybYFB147YCJblycL6zyc0Ozmws6fWZc0udQZU3LL6aevvfMeGXRupGWnX76ateZmDrI+jl4tvwd2+62B8ro2HFtfd2qIzvzvCfG7TK+QL1G9/8Xq30Z71cvDFRFhonVKHe9PEvqWdHEzsDAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "UserInterfaceStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UserInterfaceDomainName": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "Distribution830FAC52",
+        "DomainName"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "CognitoUserPool": {
+   "Value": {
+    "Ref": "UserPool6BA7E5F2"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

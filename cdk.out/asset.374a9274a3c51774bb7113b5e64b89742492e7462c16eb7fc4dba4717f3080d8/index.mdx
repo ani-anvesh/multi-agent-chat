@@ -1,0 +1,66 @@
+---
+title: Multi-Agent Orchestrator framework
+description: Manage multiple AI agents and handle complex conversations
+template: splash
+hero:
+  tagline: Flexible and powerful framework for managing multiple AI agents and handling complex conversations 🤖🚀
+  actions:
+    - text: How it works
+      link: /multi-agent-orchestrator/general/how-it-works
+      icon: right-arrow
+      variant: primary
+    # Visual break - Next line starts here
+    - text: GitHub Repository
+      link: https://github.com/awslabs/multi-agent-orchestrator
+      icon: external
+    - text: NPM Repository
+      link: https://www.npmjs.com/package/multi-agent-orchestrator
+      icon: external
+    - text: PyPI Repository
+      link: https://pypi.org/project/multi-agent-orchestrator/
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+
+## Key Features
+
+- **Multi-Agent Orchestration**: Seamlessly coordinate and leverage multiple AI agents in a single system
+- **Dual language support**: Fully implemented in both **Python** and **TypeScript**
+- **Intelligent intent classification**: Dynamically route queries to the most suitable agent based on context and content
+- **Flexible agent responses**: Support for both streaming and non-streaming responses from different agents
+- **Context management**: Maintain and utilize conversation context across multiple agents for coherent interactions
+- **Extensible architecture**: Easily integrate new agents or customize existing ones to fit your specific needs
+- **Universal deployment**: Run anywhere - from AWS Lambda to your local environment or any cloud platform
+
+<CardGrid>
+  <Card title="Quick Installation" icon="rocket">
+    Get up and running in minutes:
+    See our [Quick Start Guide](/multi-agent-orchestrator/general/quickstart) for more details.
+  </Card>
+  <Card title="How it works" icon="rocket">
+    See our [How it works](/multi-agent-orchestrator/general/how-it-works) for more details.
+  </Card>
+  <Card title="Code Samples & Deployment" icon="rocket">
+    Explore our code samples and deployment options:
+    - [Local Development Guide](/multi-agent-orchestrator/cookbook/examples/typescript-local-demo)
+    - [AWS Lambda Deployment (TypeScript)](/multi-agent-orchestrator/cookbook/lambda/aws-lambda-nodejs)
+    - [AWS Lambda Deployment (Python)](/multi-agent-orchestrator/cookbook/lambda/aws-lambda-python)
+    - [Chainlit (Python)](/multi-agent-orchestrator/cookbook/examples/chat-chainlit-app)
+    - [FastAPI streaming (Python)](/multi-agent-orchestrator/cookbook/examples/fast-api-streaming)
+  </Card>
+  <Card title="Powerful Agents" icon="puzzle">
+    Discover our built-in agents:
+    - [Bedrock LLM Agent](/multi-agent-orchestrator/agents/built-in/bedrock-llm-agent)
+    - [Amazon Bedrock Agent](/multi-agent-orchestrator/agents/built-in/amazon-bedrock-agent)
+    - [Lex Bot Agent](/multi-agent-orchestrator/agents/built-in/lex-bot-agent)
+    - [AWS Lambda Agent](/multi-agent-orchestrator/agents/built-in/lambda-agent)
+    - [Open AI Agent](/multi-agent-orchestrator/agents/built-in/lex-bot-agent)
+    - [Bedrock Translator Agent](/multi-agent-orchestrator/agents/built-in/bedrock-translator-agent)
+    - [Comprehend Filter Agent](/multi-agent-orchestrator/agents/built-in/comprehend-filter-agent)
+    - [Chain Agent](/multi-agent-orchestrator/agents/built-in/chain-agent)
+    Learn how to [create your own custom agents](/multi-agent-orchestrator/agents/custom-agents).
+  </Card>
+</CardGrid>
+
